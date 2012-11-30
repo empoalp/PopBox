@@ -12,7 +12,6 @@
  For those usages not covered by the GNU Affero General Public License please contact with::dtc_support@tid.es
  */
 
-// silly change to test hook
 
 var config = require('./config.js');
 
