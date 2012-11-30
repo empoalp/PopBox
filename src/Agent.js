@@ -3,16 +3,23 @@
 
  This file is part of PopBox.
 
- PopBox is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- PopBox is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ PopBox is free software: you can redistribute it and/or modify it under the
+  terms of the GNU Affero General Public License as published by the Free
+  Software Foundation, either version 3 of the License, or (at your option)
+  any later version.
+ PopBox is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ License for more details.
 
- You should have received a copy of the GNU Affero General Public License along with PopBox
- . If not, seehttp://www.gnu.org/licenses/.
+ You should have received a copy of the GNU Affero General Public License
+ along with PopBox. If not, seehttp://www.gnu.org/licenses/.
 
- For those usages not covered by the GNU Affero General Public License please contact with::dtc_support@tid.es
+ For those usages not covered by the GNU Affero General Public License
+ please contact with::dtc_support@tid.es
  */
 
-// silly change to test hook
+// silly change to test hook *
 
 var config = require('./config.js');
 
@@ -21,7 +28,7 @@ var log = require('PDITCLogger');
 
 log.setConfig(config.logger);
 var logger = log.newLogger();
-logger.prefix = path.basename(module.filename,'.js');
+logger.prefix = path.basename(module.filename, '.js');
 
 var cluster = require('cluster');
 var numCPUs = require('os').cpus().length;
@@ -52,7 +59,7 @@ if (cluster.isMaster && numCPUs !== 0) {
         cluster.fork();
     }
 
-    cluster.on('death', function (worker) {
+    cluster.on('death', function(worker) {
         'use strict';
         logger.warning('worker ' + worker.pid + ' died');
     });
@@ -69,14 +76,16 @@ if (cluster.isMaster && numCPUs !== 0) {
 
     var servers = [];
     var app = express.createServer();
-    app.prefix = "UNSEC:";
+    app.prefix = 'UNSEC:';
     app.port = config.agent.port;
     app._backlog = 2048;
     servers.push(app);
 
     var optionsDir;
-    logger.info("config.enableSecure", config.enableSecure);
-    if (config.enableSecure === true || config.enableSecure === "true" || config.enableSecure === 1) {
+    logger.info('config.enableSecure', config.enableSecure);
+    if (config.enableSecure === true ||
+        config.enableSecure === 'true' ||
+        config.enableSecure === 1) {
         if (!config.agent.crt_path) {
             optionsDir = {
                 key: path.resolve(dirModule, '../utils/server.key'),
@@ -101,20 +110,21 @@ if (cluster.isMaster && numCPUs !== 0) {
                 key: fs.readFileSync(optionsDir.key),
                 cert: fs.readFileSync(optionsDir.cert)
             };
-            logger.info("valid certificates");
+            logger.info('valid certificates');
         } else {
             logger.debug('certs not found', optionsDir);
-            throw new Error("No valid certificates were found in the given path");
+            throw new
+                Error('No valid certificates were found in the given path');
         }
 
         var appSec = express.createServer(options);
-        appSec.prefix = "SEC:";
+        appSec.prefix = 'SEC:';
         appSec.port = Number(config.agent.port) + 1;
 
         servers.push(appSec);
     }
 
-    servers.forEach(function (server) {
+    servers.forEach(function(server) {
         'use strict';
         server.use(express.query());
         server.use(express.bodyParser());
@@ -122,7 +132,7 @@ if (cluster.isMaster && numCPUs !== 0) {
         server.use(prefixer.prefixer(server.prefix));
         server.use(sendrender.sendRender());
         server.use(promoteSlave.checkAndPromote());
-        server.use("/", express.static(__dirname + '/public'));
+        server.use('/', express.static(__dirname + '/public'));
         server.del('/trans/:id_trans', logic.deleteTrans);
         //app.get('/trans/:id_trans/state/:state?', logic.transState);
         server.get('/trans/:id_trans', logic.transMeta);
@@ -137,35 +147,36 @@ if (cluster.isMaster && numCPUs !== 0) {
     });
 
     var evModules = config.evModules;
-    var evInitArray = evModules.map(function (x) {
+    var evInitArray = evModules.map(function(x) {
         'use strict';
         return require(x.module).init(emitter, x.config);
     });
-    
+
     async.parallel(evInitArray,
         function onSubscribed(err, results) {
             'use strict';
             logger.debug('onSubscribed(err, results)', [err, results]);
-            if(err){
+            if (err) {
                 logger.error('error subscribing event listener', err);
                 throw new InitError(['error subscribing event listener', err]);
             }
             else {
-                servers.forEach(function (server) {
+                servers.forEach(function(server) {
                     server.listen(server.port);
-                    logger.info('PopBox listening on', server.prefix+server.port);
+                    logger.info('PopBox listening on',
+                        server.prefix + server.port);
                 });
             }
         });
-    
-    
+
+
 }
 
 
 function InitError(message) {
     'use strict';
-    this.name = "InitError";
-    this.message = message || "(no message)";
+    this.name = 'InitError';
+    this.message = message || '(no message)';
 }
 InitError.prototype = new Error();
 
@@ -173,13 +184,13 @@ InitError.prototype = new Error();
 process.on('uncaughtException', function onUncaughtException(err) {
     'use strict';
     logger.warning('onUncaughtException', err);
-    
+
     if (err instanceof InitError) {
-        process.stdout.end();      
+        process.stdout.end();
         setTimeout(function() {process.exit();}, 1000);
     }
 });
- 
+
 
 
 

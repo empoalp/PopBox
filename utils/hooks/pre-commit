@@ -5,13 +5,13 @@ flag_error=false;
 
 for js in $(git diff-index --name-only  HEAD -- | grep '\.js$'); do
 
-	err_log=`gjslint $js`
+	err_log=`gjslint --nojsdoc $js`
 	errors=`echo $err_log | grep -c 'E:*:'`
     if [ $((errors)) -gt 0 ] ; then
     	echo "Some errors found in $js..."
     	echo "trying to autofix them..."
     	fixjsstyle $js  	
-		err_log=`gjslint $js`;
+		err_log=`gjslint --nojsdoc $js`;
 		errors=`echo $err_log | grep -c 'E:*:'`
 		if [ $((errors)) -gt 0 ] ; then
 			flag_error=true;
